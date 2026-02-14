@@ -70,7 +70,7 @@ pub(crate) fn deduplicate(data_lines: &[String], max_decimals: Option<u32>) -> V
                 continue;
             };
 
-            let old_num: u32 = line[1..eq].parse().unwrap_or(0);
+            let old_num: u32 = line[1..eq].trim().parse().unwrap_or(0);
             let rhs = line[eq + 1..].trim();
 
             let entity_type = get_entity_type(rhs);

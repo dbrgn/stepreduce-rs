@@ -35,7 +35,7 @@ pub(crate) fn remove_orphans(lines: &[String]) -> Vec<String> {
         let Some(eq) = line.find('=') else {
             continue;
         };
-        let eid: u32 = match line[1..eq].parse() {
+        let eid: u32 = match line[1..eq].trim().parse() {
             Ok(v) => v,
             Err(_) => continue,
         };
@@ -80,7 +80,7 @@ pub(crate) fn remove_orphans(lines: &[String]) -> Vec<String> {
         let Some(eq) = line.find('=') else {
             continue;
         };
-        let eid: u32 = match line[1..eq].parse() {
+        let eid: u32 = match line[1..eq].trim().parse() {
             Ok(v) => v,
             Err(_) => continue,
         };

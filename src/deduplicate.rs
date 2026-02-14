@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    sync::LazyLock,
-};
+use std::collections::HashMap;
 
 use crate::{
     normalize::{normalize_entity_name, normalize_numbers_in_line},

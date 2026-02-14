@@ -5,7 +5,20 @@ Seth Hillbrand to Rust. It compresses STEP CAD files in a lossless way.
 
 The initial conversion was done with the help of Claude Opus 4.6.
 
-## Library vs CLI
+## Library
+
+Use the `reduce` function. Example:
+
+```rust
+use stepreduce::{ReduceOptions, reduce};
+
+let step_data = b"ISO-10303-21;\nHEADER;\nENDSEC;\nDATA;\n#1=FOO('x');\nENDSEC;\nEND-ISO-10303-21;\n";
+let opts = ReduceOptions::default();
+let reduced = reduce(step_data, &opts).unwrap();
+assert!(!reduced.is_empty());
+```
+
+## CLI Binary
 
 This project includes a Rust library and an optional CLI binary.
 
@@ -14,11 +27,11 @@ To build the binary, enable the `cli` Cargo feature (enabled by default).
 ## Tests
 
 This repository contains a set of roughly 80 test files generated with the
-original C++ program. Tests (to ensure identical output) are run with `cargo
+original C++ program. Tests that verify identical output are run with `cargo
 test`.
 
-A larger test corpus is available in the separate `stepreduce-rs-tests`
-repository.
+A larger test corpus is available in the separate
+[`stepreduce-rs-tests`](https://github.com/dbrgn/stepreduce-rs-tests) repository.
 
 ## License
 

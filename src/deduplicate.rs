@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::{HashMap, HashSet},
+    sync::LazyLock,
+};
 
 use crate::{
     normalize::{normalize_entity_name, normalize_numbers_in_line},
@@ -61,9 +64,10 @@ pub(crate) fn deduplicate(data_lines: &[String], max_decimals: Option<u32>) -> V
 
     loop {
         let in_lines = out_lines;
-        let mut uniques: HashMap<String, u32> = HashMap::new();
-        let mut lookup: HashMap<u32, u32> = HashMap::new();
-        out_lines = Vec::new();
+        let n = in_lines.len();
+        let mut uniques: HashMap<String, u32> = HashMap::with_capacity(n);
+        let mut lookup: HashMap<u32, u32> = HashMap::with_capacity(n);
+        out_lines = Vec::with_capacity(n);
 
         for line in &in_lines {
             let Some(eq) = line.find('=') else {

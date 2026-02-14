@@ -2,16 +2,7 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
-/// Matches float literals: `1.0`, `-3.14`, `.5`, `1.0E-3`, `-2E+5`, etc.
-///
-/// The leading character class prevents matching inside identifiers or entity
-/// refs. Capture group 1 is the numeric value.
-static NUM_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(
-        r"(?:[^A-Za-z_#]|^)(-?\d+\.\d*(?:[eE][+-]?\d+)?|-?\d+[eE][+-]?\d+|-?\.\d+(?:[eE][+-]?\d+)?)",
-    )
-    .unwrap()
-});
+use crate::find_numbers::find_numbers;
 
 /// Matches entity declarations like `PRODUCT('name'` and captures up to and
 /// including the opening quote.
@@ -173,18 +164,17 @@ pub(crate) fn normalize_numbers_in_line(rhs: &str, max_decimals: Option<u32>) ->
     let mut result = String::with_capacity(rhs.len());
     let mut last_pos = 0;
 
-    for caps in NUM_PATTERN.captures_iter(rhs) {
-        let m = caps.get(1).unwrap();
-        result.push_str(&rhs[last_pos..m.start()]);
+    for m in find_numbers(rhs) {
+        result.push_str(&rhs[last_pos..m.start]);
 
-        let num_str = m.as_str();
+        let num_str = &rhs[m.start..m.end];
         let replacement = match max_decimals {
             Some(n) => round_number(num_str, n),
             None => normalize_number(num_str),
         };
         result.push_str(&replacement);
 
-        last_pos = m.end();
+        last_pos = m.end;
     }
 
     result.push_str(&rhs[last_pos..]);

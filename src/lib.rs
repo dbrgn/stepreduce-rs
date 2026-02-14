@@ -18,6 +18,7 @@ use std::io::{BufRead, Write};
 
 mod deduplicate;
 mod error;
+mod find_numbers;
 mod normalize;
 mod orphans;
 mod parse;

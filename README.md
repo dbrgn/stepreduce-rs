@@ -1,7 +1,7 @@
 # Stepreduce
 
 This library is a 1:1 port of the [stepreduce C++ library](https://gitlab.com/sethhillbrand/stepreduce) by
-Seth Hillbrand to Rust.
+Seth Hillbrand to Rust. It compresses STEP CAD files in a lossless way.
 
 The initial conversion was done with the help of Claude Opus 4.6.
 
@@ -10,6 +10,15 @@ The initial conversion was done with the help of Claude Opus 4.6.
 This project includes a Rust library and an optional CLI binary.
 
 To build the binary, enable the `cli` Cargo feature (enabled by default).
+
+## Tests
+
+This repository contains a set of roughly 80 test files generated with the
+original C++ program. Tests (to ensure identical output) are run with `cargo
+test`.
+
+A larger test corpus is available in the separate `stepreduce-rs-tests`
+repository.
 
 ## License
 

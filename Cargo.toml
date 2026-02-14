@@ -21,8 +21,19 @@ log = "0.4"
 regex = "1"
 
 [dev-dependencies]
+datatest-stable = "0.3"
 env_logger = "0.11"
 
 [features]
 default = ["cli"]
 cli = ["dep:clap", "dep:anyhow", "dep:env_logger"]
+
+[[test]]
+name = "test_vectors"
+harness = false
+
+# Optimize dependencies in dev/test builds — regex is extremely slow without this.
+[profile.dev.package."*"]
+opt-level = 2
+[profile.test.package."*"]
+opt-level = 2

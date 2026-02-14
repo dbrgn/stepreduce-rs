@@ -1,7 +1,8 @@
 # Stepreduce
 
 This library is a 1:1 port of the [stepreduce C++ library](https://gitlab.com/sethhillbrand/stepreduce) by
-Seth Hillbrand to Rust. It compresses STEP CAD files in a lossless way.
+Seth Hillbrand to Rust. It compresses STEP CAD files in a lossless way. The implementation is roughly 5x
+faster compared to the original implementation (see section _Performance_ below).
 
 The initial conversion was done with the help of Claude Opus 4.6.
 
@@ -23,6 +24,52 @@ assert!(!reduced.is_empty());
 This project includes a Rust library and an optional CLI binary.
 
 To build the binary, enable the `cli` Cargo feature (enabled by default).
+
+## Performance
+
+Surprisingly, given a 1 MiB test file (`00010546_919044145dd24288a1945b5c_step_008.step`) on a AMD Ryzen 9
+5900X CPU, the initial version of the Rust code is roughly 3.5x faster than the original C++ code (145 vs 505
+ms). This is probably attributable primarily to the use of the Rust `regex` crate, which is known to have a
+high-performance implementation, while the [C++ std::regex library is known to be
+slow](https://stackoverflow.com/questions/70583395/why-is-stdregex-notoriously-much-slower-than-other-regular-expression-librarie).
+
+Combined with a few other optimizations, **this library ends up being roughly 5x faster than the original C++
+stepreduce library**.
+
+Hyperfine test run:
+
+```
+$ hyperfine --warmup 3 \
+  'bench/cpp-baseline bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null' \
+  'bench/rs-baseline bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null' \
+  'bench/rs-find-numbers bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null' \
+  'bench/rs-prealloc bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null'
+
+Benchmark 1: bench/cpp-baseline bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null
+  Time (mean ± σ):     505.4 ms ±   2.7 ms    [User: 497.4 ms, System: 5.8 ms]
+  Range (min … max):   501.9 ms … 510.6 ms    10 runs
+
+Benchmark 2: bench/rs-baseline bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null
+  Time (mean ± σ):     145.2 ms ±   2.2 ms    [User: 137.9 ms, System: 6.6 ms]
+  Range (min … max):   142.0 ms … 149.8 ms    20 runs
+
+Benchmark 3: bench/rs-find-numbers bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null
+  Time (mean ± σ):     104.5 ms ±   1.7 ms    [User: 98.3 ms, System: 5.6 ms]
+  Range (min … max):   101.1 ms … 106.8 ms    28 runs
+
+Benchmark 4: bench/rs-prealloc bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null
+  Time (mean ± σ):      97.2 ms ±   1.8 ms    [User: 90.8 ms, System: 5.9 ms]
+  Range (min … max):    94.5 ms … 101.8 ms    31 runs
+
+Summary
+  bench/rs-prealloc bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null ran
+    1.07 ± 0.03 times faster than bench/rs-find-numbers bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null
+    1.49 ± 0.04 times faster than bench/rs-baseline bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null
+    5.20 ± 0.10 times faster than bench/cpp-baseline bench/00010546_919044145dd24288a1945b5c_step_008.step /dev/null
+```
+
+Note: Further performance gains could be achieved by replacing the `REF_PATTERN` regex with explicit Rust
+code, but in that case it was not worth the additional code complexity compared to the speedup.
 
 ## Tests
 

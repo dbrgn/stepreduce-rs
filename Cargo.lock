@@ -352,7 +352,6 @@ dependencies = [
  "datatest-stable",
  "env_logger",
  "log",
- "regex",
 ]
 
 [[package]]

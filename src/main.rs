@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 
 use anyhow::Context;
 use clap::Parser;
@@ -44,13 +44,14 @@ fn main() -> anyhow::Result<()> {
         use_step_precision: cli.use_step_precision,
     };
 
-    stepreduce::reduce(&cli.input, &cli.output, &options).with_context(|| {
-        format!(
-            "failed to reduce {} -> {}",
-            cli.input.display(),
-            cli.output.display()
-        )
-    })?;
+    let input_data =
+        fs::read(&cli.input).with_context(|| format!("failed to read {}", cli.input.display()))?;
+
+    let output_data = stepreduce::reduce(&input_data, &options)
+        .with_context(|| format!("failed to reduce {}", cli.input.display()))?;
+
+    fs::write(&cli.output, &output_data)
+        .with_context(|| format!("failed to write {}", cli.output.display()))?;
 
     Ok(())
 }

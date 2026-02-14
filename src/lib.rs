@@ -5,20 +5,16 @@
 //!
 //! # Example
 //!
-//! ```no_run
-//! use std::path::Path;
-//!
+//! ```
 //! use stepreduce::{ReduceOptions, reduce};
 //!
+//! let step_data = b"ISO-10303-21;\nHEADER;\nENDSEC;\nDATA;\n#1=FOO('x');\nENDSEC;\nEND-ISO-10303-21;\n";
 //! let opts = ReduceOptions::default();
-//! reduce(Path::new("input.stp"), Path::new("output.stp"), &opts).unwrap();
+//! let reduced = reduce(step_data, &opts).unwrap();
+//! assert!(!reduced.is_empty());
 //! ```
 
-use std::{
-    fs::File,
-    io::{BufRead, BufReader, BufWriter, Write},
-    path::Path,
-};
+use std::io::{BufRead, Write};
 
 mod deduplicate;
 mod error;
@@ -50,20 +46,16 @@ pub struct ReduceOptions {
 
 /// Reduce a STEP file by deduplicating entities and removing orphans.
 ///
-/// Reads from `input`, writes the reduced file to `output`. The two paths may
-/// refer to the same file (the input is fully read before any output is
-/// written).
-pub fn reduce(input: &Path, output: &Path, options: &ReduceOptions) -> Result<(), ReduceError> {
-    // Count lines for verbose output (requires a separate pass).
+/// Accepts raw STEP file content as a byte slice and returns the reduced
+/// content as a `Vec<u8>`.
+pub fn reduce(input: &[u8], options: &ReduceOptions) -> Result<Vec<u8>, ReduceError> {
     let n_lines = if options.verbose {
-        let file = File::open(input)?;
-        BufReader::new(file).lines().count()
+        input.lines().count()
     } else {
         0
     };
 
-    let file = File::open(input)?;
-    let reader = BufReader::new(file);
+    let reader = std::io::Cursor::new(input);
     let parsed = parse::parse_data_section(reader);
 
     let mut max_decimals = options.max_decimals;
@@ -84,25 +76,22 @@ pub fn reduce(input: &Path, output: &Path, options: &ReduceOptions) -> Result<()
     let data_lines = deduplicate::deduplicate(&parsed.data, max_decimals);
     let data_lines = orphans::remove_orphans(&data_lines);
 
-    let out_file = File::create(output)?;
-    let mut writer = BufWriter::new(out_file);
+    let mut output = Vec::with_capacity(input.len());
 
     for line in &parsed.header {
-        writeln!(writer, "{line}")?;
+        writeln!(output, "{line}")?;
     }
     for line in &data_lines {
-        writeln!(writer, "{line}")?;
+        writeln!(output, "{line}")?;
     }
     for line in &parsed.footer {
-        writeln!(writer, "{line}")?;
+        writeln!(output, "{line}")?;
     }
-
-    writer.flush()?;
 
     if options.verbose {
         let out_total = data_lines.len() + parsed.header.len() + parsed.footer.len();
-        log::info!("{} {n_lines} shrunk to {out_total}", input.display());
+        log::info!("{n_lines} lines shrunk to {out_total}");
     }
 
-    Ok(())
+    Ok(output)
 }

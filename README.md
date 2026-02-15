@@ -1,10 +1,26 @@
 # Stepreduce
 
-This library is a 1:1 port of the [stepreduce C++ library](https://gitlab.com/sethhillbrand/stepreduce) by
+This library is a port of the [stepreduce C++ library](https://gitlab.com/sethhillbrand/stepreduce) by
 Seth Hillbrand to Rust. It compresses STEP CAD files in a lossless way. The implementation is roughly 5x
 faster compared to the original implementation (see section _Performance_ below).
 
-The initial conversion was done with the help of Claude Opus 4.6.
+## Reliability
+
+**DISCLAIMER:** The initial conversion as well as Bugfixing was done with the help of Claude Opus 4.6. While I
+(the crate author) reviewed the generated code (which is not very hard to read), I have only superficial
+knowledge of how the STEP format works, and thus I currently cannot guarantee the correctness of the STEP
+reduction logic beyond the automated test suite. (Note however that the original logic contained at least one
+bug that resulted in broken STEP files, which is fixed in this codebase.)
+
+This project is an experiment, to see how far one can get with early 2026 LLMs to do such a conversion when
+guided by a test suite. While the project uses lots of test files to ensure that the generated output
+generally corresponds to the original project and is also correct, if reliability is a top priority to you,
+then either:
+
+- Don't use this crate
+- ...or even better, review the code to ensure the STEP reduction logic is sound (and let me know)
+
+I'm also happy to transfer the crate to anyone that would want to keep maintaining it.
 
 ## Library
 

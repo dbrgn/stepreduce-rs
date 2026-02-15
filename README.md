@@ -93,6 +93,9 @@ This repository contains a set of roughly 80 test files generated with the
 original C++ program. Tests that verify identical output are run with `cargo
 test`.
 
+Additionally, there are correctness tests in the `validation/` directory, which ensure that
+certain geometric properties of a model don't change with the reduction.
+
 A larger test corpus is available in the separate
 [`stepreduce-rs-tests`](https://github.com/dbrgn/stepreduce-rs-tests) repository.
 

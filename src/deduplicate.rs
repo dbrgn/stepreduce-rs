@@ -9,11 +9,18 @@ use crate::{
 ///
 /// For `PRODUCT('name',#1,#2)` this returns `PRODUCT`.
 /// For a bare identifier like `FOO` this returns the trimmed string.
+/// For complex entities like `( REPRESENTATION_RELATIONSHIP('','',#1,#2) ... )`
+/// this skips the leading `(` and returns the first type name inside.
 pub(crate) fn get_entity_type(rhs: &str) -> &str {
     let trimmed = rhs.trim();
-    match trimmed.find('(') {
-        Some(pos) => trimmed[..pos].trim(),
+    // Complex entities start with '(' — skip it and find the first type name.
+    let body = match trimmed.strip_prefix('(') {
+        Some(inner) => inner.trim_start(),
         None => trimmed,
+    };
+    match body.find('(') {
+        Some(pos) => body[..pos].trim(),
+        None => body.trim_end_matches(')').trim(),
     }
 }
 
@@ -130,6 +137,26 @@ mod tests {
         #[test]
         fn bare() {
             assert_eq!(get_entity_type("  FOO_BAR  "), "FOO_BAR");
+        }
+
+        #[test]
+        fn complex_entity() {
+            assert_eq!(
+                get_entity_type(
+                    "( REPRESENTATION_RELATIONSHIP('','',#392,#10) \
+                     REPRESENTATION_RELATIONSHIP_WITH_TRANSFORMATION(#6468) \
+                     SHAPE_REPRESENTATION_RELATIONSHIP() )"
+                ),
+                "REPRESENTATION_RELATIONSHIP",
+            );
+        }
+
+        #[test]
+        fn complex_entity_no_args() {
+            assert_eq!(
+                get_entity_type("( LENGTH_UNIT() NAMED_UNIT(*) SI_UNIT(.MILLI.,.METRE.) )"),
+                "LENGTH_UNIT",
+            );
         }
     }
 

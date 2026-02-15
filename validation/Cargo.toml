@@ -1,0 +1,25 @@
+[package]
+name = "stepreduce-rs-validation"
+description = "Validate (using OpenCascade) that geometric properties don't change after reduction"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+cxx = "1"
+opencascade-sys = { git = "https://github.com/bschwind/opencascade-rs" }
+stepreduce = { package = "stepreduce-rs", path = "../" }
+tempfile = "3"
+
+[dev-dependencies]
+datatest-stable = "0.3"
+
+[[test]]
+name = "testfiles"
+harness = false
+
+# Optimize dependencies in dev/test builds — regex is extremely slow without this.
+[profile.dev.package."*"]
+opt-level = 2
+[profile.test.package."*"]
+opt-level = 2

@@ -15,16 +15,11 @@ struct Cli {
     /// Output STEP file (may be the same as input).
     output: PathBuf,
 
-    /// Print reduction statistics.
-    #[arg(short, long)]
-    verbose: bool,
-
     /// Maximum decimal places for numeric comparison.
     #[arg(short, long)]
     precision: Option<u32>,
 
-    /// Derive precision from the STEP file's
-    /// UNCERTAINTY_MEASURE_WITH_UNIT value.
+    /// Derive precision from the STEP file's UNCERTAINTY_MEASURE_WITH_UNIT value.
     #[arg(long)]
     use_step_precision: bool,
 }
@@ -32,14 +27,7 @@ struct Cli {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    if cli.verbose {
-        env_logger::Builder::from_default_env()
-            .filter_level(log::LevelFilter::Info)
-            .init();
-    }
-
     let options = ReduceOptions {
-        verbose: cli.verbose,
         max_decimals: cli.precision,
         use_step_precision: cli.use_step_precision,
     };

@@ -14,7 +14,7 @@
 //! assert!(!reduced.is_empty());
 //! ```
 
-use std::io::{BufRead, Write};
+use std::io::Write;
 
 mod deduplicate;
 mod error;
@@ -29,9 +29,6 @@ pub use crate::error::ReduceError;
 /// Options controlling the reduction process.
 #[derive(Debug, Clone, Default)]
 pub struct ReduceOptions {
-    /// Print reduction statistics via `log::info!`.
-    pub verbose: bool,
-
     /// Maximum number of decimal places for numeric comparison.
     ///
     /// `None` means no rounding — numbers are only normalized (scientific
@@ -50,12 +47,6 @@ pub struct ReduceOptions {
 /// Accepts raw STEP file content as a byte slice and returns the reduced
 /// content as a `Vec<u8>`.
 pub fn reduce(input: &[u8], options: &ReduceOptions) -> Result<Vec<u8>, ReduceError> {
-    let n_lines = if options.verbose {
-        input.lines().count()
-    } else {
-        0
-    };
-
     let reader = std::io::Cursor::new(input);
     let parsed = parse::parse_data_section(reader);
 
@@ -64,10 +55,6 @@ pub fn reduce(input: &[u8], options: &ReduceOptions) -> Result<Vec<u8>, ReduceEr
     if options.use_step_precision
         && let Some(step_decimals) = normalize::extract_uncertainty(&parsed.data)
     {
-        if options.verbose {
-            log::info!("derived {step_decimals} decimal places from STEP uncertainty");
-        }
-
         max_decimals = Some(match max_decimals {
             Some(current) => current.min(step_decimals),
             None => step_decimals,
@@ -87,11 +74,6 @@ pub fn reduce(input: &[u8], options: &ReduceOptions) -> Result<Vec<u8>, ReduceEr
     }
     for line in &parsed.footer {
         writeln!(output, "{line}")?;
-    }
-
-    if options.verbose {
-        let out_total = data_lines.len() + parsed.header.len() + parsed.footer.len();
-        log::info!("{n_lines} lines shrunk to {out_total}");
     }
 
     Ok(output)

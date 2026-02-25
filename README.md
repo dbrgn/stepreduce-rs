@@ -4,6 +4,10 @@ This library is a port of the [stepreduce C++ library](https://gitlab.com/sethhi
 Seth Hillbrand to Rust. It compresses STEP CAD files in a lossless way. The implementation is roughly 5x
 faster compared to the original implementation (see section _Performance_ below).
 
+_(Update 2026-02-25: After [some
+optimizations](https://gitlab.com/sethhillbrand/stepreduce/-/issues/3) the C++
+project is now slightly faster again than this Rust codebase.)_
+
 ## Reliability
 
 **DISCLAIMER:** The initial conversion as well as Bugfixing was done with the help of Claude Opus 4.6. While I
@@ -43,8 +47,12 @@ To build the binary, enable the `cli` Cargo feature (enabled by default).
 
 ## Performance
 
+_(Update 2026-02-25: After [some
+optimizations](https://gitlab.com/sethhillbrand/stepreduce/-/issues/3) the C++
+project is now slightly faster again than this Rust codebase.)_
+
 Surprisingly, given a 1 MiB test file (`00010546_919044145dd24288a1945b5c_step_008.step`) on a AMD Ryzen 9
-5900X CPU, the initial version of the Rust code is roughly 3.5x faster than the original C++ code (145 vs 505
+5900X CPU, the initial version of the Rust code was roughly 3.5x faster than the original C++ code (145 vs 505
 ms). This is probably attributable primarily to the use of the Rust `regex` crate, which is known to have a
 high-performance implementation, while the [C++ std::regex library is known to be
 slow](https://stackoverflow.com/questions/70583395/why-is-stdregex-notoriously-much-slower-than-other-regular-expression-librarie).

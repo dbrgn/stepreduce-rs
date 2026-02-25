@@ -39,8 +39,7 @@ fn main() -> anyhow::Result<()> {
     let input_data =
         fs::read(&cli.input).with_context(|| format!("failed to read {}", cli.input.display()))?;
 
-    let output_data = stepreduce::reduce(&input_data, &options)
-        .with_context(|| format!("failed to reduce {}", cli.input.display()))?;
+    let output_data = stepreduce::reduce(&input_data, &options);
 
     fs::write(&cli.output, &output_data)
         .with_context(|| format!("failed to write {}", cli.output.display()))?;

@@ -10,21 +10,18 @@
 //!
 //! let step_data = b"ISO-10303-21;\nHEADER;\nENDSEC;\nDATA;\n#1=FOO('x');\nENDSEC;\nEND-ISO-10303-21;\n";
 //! let opts = ReduceOptions::default();
-//! let reduced = reduce(step_data, &opts).unwrap();
+//! let reduced = reduce(step_data, &opts);
 //! assert!(!reduced.is_empty());
 //! ```
 
 use std::io::Write;
 
 mod deduplicate;
-mod error;
 mod find_numbers;
 mod normalize;
 mod orphans;
 mod parse;
 mod references;
-
-pub use crate::error::ReduceError;
 
 /// Options controlling the reduction process.
 #[derive(Debug, Clone, Default)]
@@ -46,7 +43,7 @@ pub struct ReduceOptions {
 ///
 /// Accepts raw STEP file content as a byte slice and returns the reduced
 /// content as a `Vec<u8>`.
-pub fn reduce(input: &[u8], options: &ReduceOptions) -> Result<Vec<u8>, ReduceError> {
+pub fn reduce(input: &[u8], options: &ReduceOptions) -> Vec<u8> {
     let reader = std::io::Cursor::new(input);
     let parsed = parse::parse_data_section(reader);
 
@@ -67,14 +64,14 @@ pub fn reduce(input: &[u8], options: &ReduceOptions) -> Result<Vec<u8>, ReduceEr
     let mut output = Vec::with_capacity(input.len());
 
     for line in &parsed.header {
-        writeln!(output, "{line}")?;
+        writeln!(output, "{line}").expect("writing to Vec through Cursor should not fail");
     }
     for line in &data_lines {
-        writeln!(output, "{line}")?;
+        writeln!(output, "{line}").expect("writing to Vec through Cursor should not fail");
     }
     for line in &parsed.footer {
-        writeln!(output, "{line}")?;
+        writeln!(output, "{line}").expect("writing to Vec through Cursor should not fail");
     }
 
-    Ok(output)
+    output
 }

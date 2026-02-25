@@ -12,7 +12,7 @@ fn test_geometric_equivalence(path: &Path) -> datatest_stable::Result<()> {
 
     // Run stepreduce on the original file.
     let input = fs::read(path)?;
-    let reduced_bytes = stepreduce::reduce(&input, &ReduceOptions::default())?;
+    let reduced_bytes = stepreduce::reduce(&input, &ReduceOptions::default());
 
     // Write reduced output to a temporary file (OCCT needs a file path).
     let mut tmp = tempfile::NamedTempFile::with_suffix(".step")?;

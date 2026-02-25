@@ -15,6 +15,10 @@ struct Cli {
     /// Output STEP file (may be the same as input).
     output: PathBuf,
 
+    /// Print reduction statistics.
+    #[arg(short, long)]
+    verbose: bool,
+
     /// Maximum decimal places for numeric comparison.
     #[arg(short, long)]
     precision: Option<u32>,
@@ -40,6 +44,15 @@ fn main() -> anyhow::Result<()> {
 
     fs::write(&cli.output, &output_data)
         .with_context(|| format!("failed to write {}", cli.output.display()))?;
+
+    // Print stats
+    if cli.verbose {
+        let before = input_data.len();
+        let after = output_data.len();
+        let delta = before - after;
+        let percent = (delta as f32) * 100.0 / (before as f32);
+        println!("Done: {before} bytes shrunk to {after} bytes (-{percent:.1}%)");
+    }
 
     Ok(())
 }

@@ -17,6 +17,7 @@ const GC_ROOT_ENTITIES: &[&str] = &[
     "PRESENTATION_LAYER_ASSIGNMENT",
     "PRODUCT_DEFINITION",
     "SHAPE_DEFINITION_REPRESENTATION",
+    "SHAPE_REPRESENTATION_RELATIONSHIP",
 ];
 
 /// Remove unreachable ("orphan") entities from the data section.
@@ -138,5 +139,55 @@ mod tests {
         ];
         let result = remove_orphans(&lines);
         assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn keeps_shape_representation_relationship_as_root() {
+        // SHAPE_REPRESENTATION_RELATIONSHIP is a top-level structural link
+        // between a SHAPE_REPRESENTATION and an
+        // ADVANCED_BREP_SHAPE_REPRESENTATION. Nothing references it by ID;
+        // it must be a GC root so the BREP subtree is preserved.
+        let lines = vec![
+            "#1=SHAPE_DEFINITION_REPRESENTATION(#2,#3)".to_string(),
+            "#2=PRODUCT_DEFINITION_SHAPE('','',#10)".to_string(),
+            "#3=SHAPE_REPRESENTATION('',(#11),#12)".to_string(),
+            "#4=SHAPE_REPRESENTATION_RELATIONSHIP('','',#3,#5)".to_string(),
+            "#5=ADVANCED_BREP_SHAPE_REPRESENTATION('',(#6),#12)".to_string(),
+            "#6=MANIFOLD_SOLID_BREP('',#7)".to_string(),
+            "#7=CLOSED_SHELL('',(#8))".to_string(),
+            "#8=ADVANCED_FACE('',(#9),#13,.T.)".to_string(),
+            "#9=FACE_BOUND('',#14,.T.)".to_string(),
+            "#10=PRODUCT_DEFINITION('pd','',#15,#16)".to_string(),
+            "#11=AXIS2_PLACEMENT_3D('',#17,#18,#19)".to_string(),
+            "#12=REPRESENTATION_CONTEXT('','')".to_string(),
+            "#13=PLANE('',#11)".to_string(),
+            "#14=EDGE_LOOP('',(#20))".to_string(),
+            "#15=PRODUCT_DEFINITION_FORMATION('','',#21)".to_string(),
+            "#16=APPLICATION_CONTEXT('core')".to_string(),
+            "#17=CARTESIAN_POINT('',0.,0.,0.)".to_string(),
+            "#18=DIRECTION('',0.,0.,1.)".to_string(),
+            "#19=DIRECTION('',1.,0.,0.)".to_string(),
+            "#20=ORIENTED_EDGE('',*,*,#22,.T.)".to_string(),
+            "#21=PRODUCT('p','','',(#23))".to_string(),
+            "#22=EDGE_CURVE('',#24,#24,#25,.T.)".to_string(),
+            "#23=PRODUCT_CONTEXT('',#16,'')".to_string(),
+            "#24=VERTEX_POINT('',#17)".to_string(),
+            "#25=LINE('',#17,#26)".to_string(),
+            "#26=VECTOR('',#18,1.)".to_string(),
+        ];
+        let result = remove_orphans(&lines);
+        // The ADVANCED_BREP_SHAPE_REPRESENTATION subtree must survive
+        // because SHAPE_REPRESENTATION_RELATIONSHIP is a GC root.
+        assert!(
+            result
+                .iter()
+                .any(|l| l.contains("ADVANCED_BREP_SHAPE_REPRESENTATION")),
+            "ADVANCED_BREP_SHAPE_REPRESENTATION must be kept via SHAPE_REPRESENTATION_RELATIONSHIP root"
+        );
+        assert!(
+            result.iter().any(|l| l.contains("MANIFOLD_SOLID_BREP")),
+            "MANIFOLD_SOLID_BREP must be reachable from SHAPE_REPRESENTATION_RELATIONSHIP"
+        );
+        assert_eq!(result.len(), lines.len());
     }
 }
